@@ -1,0 +1,4 @@
+Flask==2.1.2           # Flask is used for routing and handling HTTP requests
+SQLAlchemy==1.4.31      # SQLAlchemy is used for database interactions
+pandas==1.4.2          # Pandas is used for working with data frames and SQL query results
+psycopg2-binary==2.9.3  # psycopg2 is used for PostgreSQL database connection
