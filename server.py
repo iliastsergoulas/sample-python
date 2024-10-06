@@ -339,6 +339,12 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write("Δεν έχετε δικαίωμα πρόσβασης.".encode('utf-8'))
             engine.dispose()
+        
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            error_message = f"Internal server error: {e}".encode()
+            self.wfile.write(error_message)
     
     def getSampleM193(self, query_params):
         try:
