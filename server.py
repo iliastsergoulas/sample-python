@@ -43,7 +43,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
     
             # SQL query to get user info with correct parameterization using %s for psycopg2
             get_user_query = "SELECT * FROM public.tools_rights WHERE reports=1 AND username=(%(username)s)"
-            user_info = pd.read_sql_query(get_user_query, con=engine, params=[username])
+            user_info = pd.read_sql_query(get_user_query, con=engine, params={"username": username})
     
             # If user exists, return their information, else return error
             if len(user_info) > 0:
@@ -59,7 +59,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
-                self.wfile.write(b"No access rights.")
+                self.wfile.write("Δεν έχετε δικαίωμα πρόσβασης.".encode('utf-8'))
             engine.dispose()
     
         except Exception as e:
