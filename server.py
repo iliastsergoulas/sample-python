@@ -5,9 +5,6 @@ import sqlalchemy as sa
 import pandas as pd
 import datetime
 
-# Database URL (replace with your actual DB URL)
-DATABASE_URL = 'postgresql://user:password@localhost/mydatabase'
-
 class MyRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
