@@ -59,7 +59,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
-                self.wfile.write(b"Δεν έχετε δικαίωμα πρόσβασης.")
+                self.wfile.write(b"No access rights.")
             engine.dispose()
     
         except Exception as e:
