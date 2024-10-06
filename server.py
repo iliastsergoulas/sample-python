@@ -29,7 +29,8 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             # Get parameters from the query
             username = query_params.get('username', [None])[0]
             userid = query_params.get('userid', [None])[0]
-    
+            today = datetime.date.today()
+
             if not username or not userid:
                 self.send_response(400)
                 self.end_headers()
@@ -41,21 +42,24 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             con = engine.connect()
     
             # SQL query to get user info with correct parameterization using %s for psycopg2
-            get_user_query = "SELECT * FROM public.users WHERE username=%s AND userid=%s"
-            user_info = pd.read_sql_query(get_user_query, con=engine, params=[username, userid])
+            get_user_query = "SELECT * FROM public.tools_rights WHERE reports=1 AND username=(%(username)s)"
+            user_info = pd.read_sql_query(get_user_query, con=engine, params=[username])
     
             # If user exists, return their information, else return error
             if len(user_info) > 0:
-                user_info_dict = user_info.to_dict(orient='records')
+                con.execute('INSERT INTO public.tools_history VALUES (\'%s\',\'%s\',\'%s\')' % (username, userid, today))
+                get_reports = """SELECT reportid, reportname FROM public.reports"""
+                reports = pd.read_sql_query(get_reports, con=engine)
+                reports = reports.to_dict(orient='records')
+
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
                 self.end_headers()
-                self.wfile.write(json.dumps(user_info_dict).encode())
+                self.wfile.write(json.dumps(reports).encode())
             else:
                 self.send_response(404)
                 self.end_headers()
-                self.wfile.write(b"User not found")
-    
+                self.wfile.write(b"Δεν έχετε δικαίωμα πρόσβασης.")
             engine.dispose()
     
         except Exception as e:
