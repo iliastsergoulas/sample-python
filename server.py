@@ -17,8 +17,12 @@ class MyRequestHandler(BaseHTTPRequestHandler):
         query_params = urllib.parse.parse_qs(parsed_path.query)
 
         # Determine the endpoint
-        if parsed_path.path == '/getUserInfo':
-            self.handle_get_user_info(query_params)
+        if parsed_path.path == '/getReports':
+            self.getReports(query_params)
+        elif parsed_path.path == '/getReport':
+            self.getReport(query_params)
+        elif parsed_path.path == '/getSampleM16':
+            self.getSampleM16(query_params)
         else:
             self.send_response(404)
             self.end_headers()
