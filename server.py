@@ -101,7 +101,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             error_message = f"Internal server error: {e}".encode()
             self.wfile.write(error_message)
     
-    def get_reports(self, query_params):
+    def getReports(self, query_params):
         try:
             # Get parameters from the query
             username = query_params.get('username', [None])[0]
