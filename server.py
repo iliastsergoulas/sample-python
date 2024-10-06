@@ -314,7 +314,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             username = query_params.get('username', [None])[0]
             userid = query_params.get('userid', [None])[0]
             today = datetime.date.today()
-
+    
             if not username or not userid:
                 self.send_response(400)
                 self.end_headers()
@@ -325,17 +325,20 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             engine = sa.create_engine(DATABASE_URL, encoding='utf-8')
             con = engine.connect()
     
+            # SQL query to check if the user has permission
             get_user = """SELECT * FROM public.tools_rights WHERE m193sampling=1 AND username=(%(username)s)"""
             users = pd.read_sql_query(get_user, con=engine, params={"username": username})
-
-            # If user exists, return their information, else return error
-            if (len(users) > 0):
-                con.execute('INSERT INTO public.tools_history VALUES (\'%s\',\'%s\',\'%s\')' % (username, userid, today))
+    
+            # If user has permission, fetch history, else return error
+            if len(users) > 0:
+                con.execute(
+                    'INSERT INTO public.tools_history VALUES (\'%s\',\'%s\',\'%s\')' % (username, userid, today)
+                )
                 get_history = """SELECT * FROM public.m193sampling"""
                 history = pd.read_sql_query(get_history, con=engine)
                 history = pd.DataFrame(history.groupby("date", as_index=False)["opsaa"].count(), index=None)
                 history = history.to_dict(orient='records')
-
+    
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
                 self.end_headers()
@@ -344,13 +347,15 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                 self.send_response(404)
                 self.end_headers()
                 self.wfile.write("Δεν έχετε δικαίωμα πρόσβασης.".encode('utf-8'))
+    
             engine.dispose()
-        
+    
         except Exception as e:
             self.send_response(500)
             self.end_headers()
-            error_message = f"Internal server error: {e}".encode()
+            error_message = f"Internal server error: {e}".encode('utf-8')
             self.wfile.write(error_message)
+
     
     def getSampleM193(self, query_params):
         try:
