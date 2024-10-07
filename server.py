@@ -8,6 +8,7 @@ import os
 
 # Get the database URL from the environment (as required by DigitalOcean App Platform)
 DATABASE_URL = os.getenv('DATABASE_URL')
+myerror = {"myerror": "Δεν έχετε δικαίωμα πρόσβασης."}
 
 class MyRequestHandler(BaseHTTPRequestHandler):
 
@@ -121,7 +122,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
-                self.wfile.write("Δεν έχετε δικαίωμα πρόσβασης.".encode('utf-8'))
+                self.wfile.write(json.dumps(myerror).encode())
             engine.dispose()
     
         except Exception as e:
@@ -188,7 +189,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
-                self.wfile.write("Δεν έχετε δικαίωμα πρόσβασης.".encode('utf-8'))
+                self.wfile.write(json.dumps(myerror).encode())
             engine.dispose()
     
         except Exception as e:
@@ -232,21 +233,25 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                     if any(data['opsaa'].apply(lambda x: len(str(x)) != 10)):
                         print(data['opsaa'])
                         engine.dispose()
+                        temperror = {"myerror": "Οι κωδικοί ΟΠΣΑΑ δεν είναι στη σωστή μορφή."}
                         self.send_response(404)
                         self.end_headers()
-                        self.wfile.write("Οι κωδικοί ΟΠΣΑΑ δεν είναι στη σωστή μορφή.".encode('utf-8'))
+                        self.wfile.write(json.dumps(temperror).encode())
                     elif data.isnull().values.any():
+                        temperror = {"myerror": "Το αρχείο περιέχει κενές τιμές."}
                         self.send_response(404)
                         self.end_headers()
-                        self.wfile.write("Το αρχείο περιέχει κενές τιμές.".encode('utf-8'))
+                        self.wfile.write(json.dumps(temperror).encode())
                     elif is_numeric_dtype(data['amount']):
+                        temperror = {"myerror": "Η στήλη amount πρέπει να περιέχει μόνο αριθμητικές τιμές."}
                         self.send_response(404)
                         self.end_headers()
-                        self.wfile.write("Η στήλη amount πρέπει να περιέχει μόνο αριθμητικές τιμές.".encode('utf-8'))
+                        self.wfile.write(json.dumps(temperror).encode())
                     elif not data['final'].isin([0,1]).all():
+                        temperror = {"myerror": "Οι τιμές της στήλης final πρέπει να είναι μόνο 0 ή 1."}
                         self.send_response(404)
                         self.end_headers()
-                        self.wfile.write("Οι τιμές της στήλης final πρέπει να είναι μόνο 0 ή 1.".encode('utf-8'))
+                        self.wfile.write(json.dumps(temperror).encode())
                     else:
                         get_previous = """SELECT DISTINCT opsaa FROM public.m193sampling WHERE selectedsample='Ναι'"""
                         previous = pd.read_sql_query(get_previous, con=engine, params={"value": "Ναι"})
@@ -259,9 +264,10 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                         dataFinalPayment = data.loc[data['final'] == 1]
                         dataToSample = dataToSample.loc[data['final'] != 1]
                         if len(dataToSample) == 0:
+                            temperror = {"myerror": "Δεν προέκυψαν έργα στο Δείγμα. Ελέγξτε ξανά το αρχείο έργων που επισυνάψατε."}
                             self.send_response(404)
                             self.end_headers()
-                            self.wfile.write("Δεν προέκυψαν έργα στο Δείγμα. Ελέγξτε ξανά το αρχείο έργων που επισυνάψατε.".encode('utf-8'))
+                            self.wfile.write(json.dumps(temperror).encode())
                         else:
                             if set(['opsaa','name']).issubset(dataToSample.columns):
                                 sample = dataToSample.sample(frac=0.1, random_state=1)
@@ -289,17 +295,19 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                                 self.end_headers()
                                 self.wfile.write(json.dumps(sample).encode())
                             else:
+                                temperror = {"myerror": "Δεν έχετε επισυνάψει το αρχείο στη σωστή μορφή."}
                                 self.send_response(404)
                                 self.end_headers()
-                                self.wfile.write("Δεν έχετε επισυνάψει το αρχείο στη σωστή μορφή.".encode('utf-8'))
+                                self.wfile.write(json.dumps(temperror).encode())
                 else:
+                    temperror = {"myerror": "Οι στήλες του αρχείου δεν είναι σωστές."}
                     self.send_response(404)
                     self.end_headers()
-                    self.wfile.write("Οι στήλες του αρχείου δεν είναι σωστές.".encode('utf-8')) 
+                    self.wfile.write(json.dumps(temperror).encode())
             else:
                 self.send_response(404)
                 self.end_headers()
-                self.wfile.write("Δεν έχετε δικαίωμα πρόσβασης.".encode('utf-8'))
+                self.wfile.write(json.dumps(myerror).encode())
             engine.dispose()
         
         except Exception as e:
@@ -346,7 +354,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
-                self.wfile.write("Δεν έχετε δικαίωμα πρόσβασης.".encode('utf-8'))
+                self.wfile.write(json.dumps(myerror).encode())
     
             engine.dispose()
     
@@ -393,7 +401,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
-                self.wfile.write("Δεν έχετε δικαίωμα πρόσβασης.".encode('utf-8'))
+                self.wfile.write(json.dumps(myerror).encode())
             engine.dispose()
     
         except Exception as e:
@@ -465,7 +473,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
-                self.wfile.write("Δεν έχετε δικαίωμα πρόσβασης.".encode('utf-8'))
+                self.wfile.write(json.dumps(myerror).encode())
             engine.dispose()
     
         except Exception as e:
@@ -573,7 +581,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
-                self.wfile.write("Δεν έχετε δικαίωμα πρόσβασης.".encode('utf-8'))
+                self.wfile.write(json.dumps(myerror).encode())
             engine.dispose()
     
         except Exception as e:
@@ -634,7 +642,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             except sa.exc.IntegrityError:
                 self.send_response(404)
                 self.end_headers()
-                self.wfile.write("Δεν έχετε δικαίωμα πρόσβασης.".encode('utf-8'))
+                self.wfile.write(json.dumps(myerror).encode())
             engine.dispose()
     
         except Exception as e:
@@ -707,7 +715,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
-                self.wfile.write("Δεν έχετε δικαίωμα πρόσβασης.".encode('utf-8'))
+                self.wfile.write(json.dumps(myerror).encode())
             engine.dispose()
     
         except Exception as e:
@@ -751,7 +759,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
-                self.wfile.write("Δεν έχετε δικαίωμα πρόσβασης.".encode('utf-8'))
+                self.wfile.write(json.dumps(myerror).encode())
             engine.dispose()
     
         except Exception as e:
@@ -812,7 +820,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
-                self.wfile.write("Δεν έχετε δικαίωμα πρόσβασης.".encode('utf-8'))
+                self.wfile.write(json.dumps(myerror).encode())
             engine.dispose()
     
         except Exception as e:
