@@ -13,10 +13,24 @@ myerror = {"myerror": "Δεν έχετε δικαίωμα πρόσβασης."}
 
 class MyRequestHandler(BaseHTTPRequestHandler):
 
+    def set_cors_headers(self):
+        self.send_header('Access-Control-Allow-Origin', '*')  # You can replace '*' with a specific domain if needed
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    
+    def do_OPTIONS(self):
+        # Handle preflight requests (OPTIONS method)
+        self.send_response(200)
+        self.set_cors_headers()
+        self.end_headers()
+
     def do_GET(self):
         # Parse URL and parameters
         parsed_path = urllib.parse.urlparse(self.path)
         query_params = urllib.parse.parse_qs(parsed_path.query)
+
+        # Set CORS headers for all responses
+        self.set_cors_headers()
 
         # Determine the endpoint
         if parsed_path.path == '/getReports':
