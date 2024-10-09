@@ -30,6 +30,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
         query_params = urllib.parse.parse_qs(parsed_path.query)
 
         # Set CORS headers for all responses
+        self.send_response(200)
         self.set_cors_headers()
 
         # Determine the endpoint
