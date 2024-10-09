@@ -507,6 +507,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
 
             if not username or not userid:
                 self.send_response(400)
+                self.set_cors_headers()
                 self.end_headers()
                 self.wfile.write(b"Missing username or userid")
                 return
@@ -592,16 +593,19 @@ class MyRequestHandler(BaseHTTPRequestHandler):
 
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
+                self.set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps(availableUnique).encode())
             else:
                 self.send_response(404)
+                self.set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps(myerror).encode())
             engine.dispose()
     
         except Exception as e:
             self.send_response(500)
+            self.set_cors_headers()
             self.end_headers()
             error_message = f"Internal server error: {e}".encode()
             self.wfile.write(error_message)
@@ -615,6 +619,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
 
             if not username or not userid:
                 self.send_response(400)
+                self.set_cors_headers()
                 self.end_headers()
                 self.wfile.write(b"Missing username or userid")
                 return
@@ -657,12 +662,14 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps(history).encode())
             except sa.exc.IntegrityError:
                 self.send_response(404)
+                self.set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps(myerror).encode())
             engine.dispose()
     
         except Exception as e:
             self.send_response(500)
+            self.set_cors_headers()
             self.end_headers()
             error_message = f"Internal server error: {e}".encode()
             self.wfile.write(error_message)
