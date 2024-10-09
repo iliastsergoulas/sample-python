@@ -618,16 +618,18 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             today = datetime.date.today()
 
             if not username or not userid:
+                print("0")
                 self.send_response(400)
                 self.set_cors_headers()
                 self.end_headers()
                 self.wfile.write(b"Missing username or userid")
                 return
-    
+
             # Connect to the database
             engine = sa.create_engine(DATABASE_URL, encoding='utf-8')
             con = engine.connect()
-    
+            print("1")
+
             # Combine the two queries into one
             insert_history_query = """
                 INSERT INTO public.tools_history (username, userid, mydate)
@@ -642,37 +644,59 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                 );
             """
             try:
+                # Insert history if user exists with appropriate permissions
                 con.execute(insert_history_query, {"username": username, "userid": userid, "today": today})
+
+                # Fetch historical data from the m16sampling table
                 get_history_query = """SELECT DISTINCT pske, code FROM public.m16sampling"""
                 history = pd.read_sql_query(get_history_query, con=engine)
-                if (username != 'itsergoulas@mou.gr'):
-                    get_user = """SELECT * 
-                                FROM (SELECT "Κωδικός Πρότασης", "Υπηρεσία" FROM public.m16projects) AS t1 
-                                JOIN (SELECT foreas FROM public.tools_rights WHERE username = %(username)s) AS t2 
-                                ON t1."Υπηρεσία" = t2.foreas;
-                                """
-                    users = pd.read_sql_query(get_user, con=engine, params={"username": username})
-                    users[u'Κωδικός Πρότασης'] = users[u'Κωδικός Πρότασης'].apply(lambda x: x.encode('UTF-8'))
-                    history['pske'] = history['pske'].apply(lambda x: x.encode('UTF-8'))
+
+                print(username)
+
+                # If the username is not 'itsergoulas@mou.gr', we filter by service (foreas)
+                if username != 'itsergoulas@mou.gr':
+                    get_user_query = """
+                        SELECT * 
+                        FROM (SELECT "Κωδικός Πρότασης", "Υπηρεσία" FROM public.m16projects) AS t1 
+                        JOIN (SELECT foreas FROM public.tools_rights WHERE username = %(username)s) AS t2 
+                        ON t1."Υπηρεσία" = t2.foreas;
+                    """
+                    users = pd.read_sql_query(get_user_query, con=engine, params={"username": username})
+                    # If the 'Κωδικός Πρότασης' and 'pske' fields are bytes, we need to decode them
+                    users[u'Κωδικός Πρότασης'] = users[u'Κωδικός Πρότασης'].apply(
+                        lambda x: x.decode('utf-8') if isinstance(x, bytes) else x)
+                    history['pske'] = history['pske'].apply(lambda x: x.decode('utf-8') if isinstance(x, bytes) else x)
+                    # Merge the history with user-specific data
                     history = pd.merge(history, users, left_on="pske", right_on=u"Κωδικός Πρότασης")
-                    history = history.to_dict(orient='records')
-                    self.send_response(200)
-                    self.send_header('Content-type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps(history).encode())
+
+                # Convert history DataFrame to a dict for JSON serialization
+                history_dict = history.to_dict(orient='records')
+                print(history_dict)
+
+                # Send the response
+                self.send_response(200)
+                self.set_cors_headers()
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                # Encode response to UTF-8 and write it
+                self.wfile.write(json.dumps(history_dict).encode('utf-8'))
+
             except sa.exc.IntegrityError:
+                print("4")
                 self.send_response(404)
                 self.set_cors_headers()
                 self.end_headers()
-                self.wfile.write(json.dumps(myerror).encode())
-            engine.dispose()
-    
+                self.wfile.write(json.dumps(myerror).encode('utf-8'))
+
+            finally:
+                engine.dispose()
+
         except Exception as e:
             self.send_response(500)
             self.set_cors_headers()
             self.end_headers()
-            error_message = f"Internal server error: {e}".encode()
-            self.wfile.write(error_message)
+            error_message = f"Internal server error: {e}"
+            self.wfile.write(error_message.encode('utf-8'))
     
     def getSampleM16(self, query_params):
         try:
