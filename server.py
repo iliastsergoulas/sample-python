@@ -675,7 +675,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
     
             # Send the response
             self.send_response(200)
-            self.set_cors_headers()
+            #self.set_cors_headers()
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps(history_dict).encode('utf-8'))
@@ -683,7 +683,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
         except sa.exc.IntegrityError as e:
             print(f"IntegrityError: {e}")
             self.send_response(404)
-            self.set_cors_headers()
+            #self.set_cors_headers()
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({"error": "Integrity error occurred"}).encode('utf-8'))
@@ -691,7 +691,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
         except Exception as e:
             print(f"Exception: {e}")
             self.send_response(500)
-            self.set_cors_headers()
+            #self.set_cors_headers()
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({"error": f"Internal server error: {e}"}).encode('utf-8'))
