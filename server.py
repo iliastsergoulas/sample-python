@@ -5,6 +5,7 @@ import sqlalchemy as sa
 import pandas as pd
 import datetime
 import os
+import numpy as np
 
 # Get the database URL from the environment (as required by DigitalOcean App Platform)
 DATABASE_URL = os.getenv('DATABASE_URL')
